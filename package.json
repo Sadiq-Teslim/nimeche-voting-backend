@@ -1,0 +1,26 @@
+{
+  "name": "nimeche-voting-backend",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "check": "node --check server.js && node --check db.js && node --check routes/api.js && node --check routes/admin.js && node --check routes/middleware.js && node --check routes/nominations.js && node --check routes/voting.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "Postgres-backed voting portal backend template",
+  "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.6.0",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.22.0"
+  },
+  "overrides": {
+    "path-to-regexp": "^8.4.0"
+  }
+}
