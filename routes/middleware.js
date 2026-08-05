@@ -104,6 +104,7 @@ function requireAdmin(req, res, next) {
 // --- ELECTION STATUS CACHE ---
 // =================================================================
 let electionStatusCache = { value: null, updatedAt: 0 }
+let portalModeCache = { value: null, updatedAt: 0 }
 const CACHE_TTL_MS = 10_000
 
 async function getElectionStatus() {
@@ -123,8 +124,25 @@ async function getElectionStatus() {
     return status
 }
 
+async function getPortalMode() {
+    if (portalModeCache.value && Date.now() - portalModeCache.updatedAt < CACHE_TTL_MS) {
+        return portalModeCache.value
+    }
+    const result = await query(
+        `select coalesce(
+            (select value from settings where organization_id = $1 and key = 'portalMode'),
+            'nominations'
+        ) as mode`,
+        [getOrgId()]
+    )
+    const mode = result.rows[0]?.mode || 'nominations'
+    portalModeCache = { value: mode, updatedAt: Date.now() }
+    return mode
+}
+
 function invalidateElectionCache() {
     electionStatusCache = { value: null, updatedAt: 0 }
+    portalModeCache = { value: null, updatedAt: 0 }
 }
 
 module.exports = {
@@ -137,6 +155,7 @@ module.exports = {
     issueCsrfToken,
     requireAdmin,
     getElectionStatus,
+    getPortalMode,
     invalidateElectionCache,
     getJwtSecret,
     votedCookieName,

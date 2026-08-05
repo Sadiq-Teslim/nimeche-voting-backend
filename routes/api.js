@@ -2,7 +2,7 @@
 const express = require('express')
 const jwt = require('jsonwebtoken')
 const router = express.Router()
-const { globalLimiter, adminLimiter, getElectionStatus, getJwtSecret, getOrgId } = require('./middleware')
+const { globalLimiter, adminLimiter, getElectionStatus, getPortalMode, getJwtSecret, getOrgId } = require('./middleware')
 const { query } = require('../db')
 const votingRoutes = require('./voting')
 const adminRoutes = require('./admin')
@@ -31,7 +31,8 @@ router.get('/org', (req, res) => {
 router.get('/election-status', async (req, res) => {
     try {
         const status = await getElectionStatus()
-        res.json({ status })
+        const portalMode = await getPortalMode()
+        res.json({ status, portalMode })
     } catch (error) {
         console.error('Error fetching election status:', error)
         res.status(500).json({ message: 'Server error.' })

@@ -103,6 +103,34 @@ router.post('/toggle-election', async (req, res) => {
     }
 })
 
+// --- Toggle portal mode ---
+router.post('/toggle-portal-mode', async (req, res) => {
+    try {
+        const result = await query(
+            `with current_mode as (
+                select coalesce(
+                    (select value from settings where organization_id = $1 and key = 'portalMode'),
+                    'nominations'
+                ) as value
+            )
+            insert into settings (organization_id, key, value)
+            select $1, 'portalMode', case when value = 'nominations' then 'voting' else 'nominations' end
+            from current_mode
+            on conflict (organization_id, key) do update
+            set value = excluded.value, updated_at = now()
+            returning value`,
+            [getOrgId()]
+        )
+        const mode = result.rows[0]?.value || 'nominations'
+        invalidateElectionCache()
+        console.log(`[AUDIT] Portal mode toggled to: ${mode}`)
+        res.json({ success: true, newPortalMode: mode })
+    } catch (error) {
+        console.error('Error toggling portal mode:', error)
+        res.status(500).json({ message: 'Server error.' })
+    }
+})
+
 // --- Delete all nominations ---
 router.post('/delete-nominations', async (req, res) => {
     try {
