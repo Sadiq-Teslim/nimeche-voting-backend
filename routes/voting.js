@@ -2,7 +2,7 @@
 const express = require('express')
 const router = express.Router()
 const { query, transaction } = require('../db')
-const { getOrgId, voteLimiter, csrfProtection, issueCsrfToken, votedCookieName, getElectionStatus } = require('./middleware')
+const { getOrgId, voteLimiter, csrfProtection, issueCsrfToken, votedCookieName, getElectionStatus, getPortalMode } = require('./middleware')
 
 function isValidFingerprint(fingerprint) {
     return typeof fingerprint === 'string' && fingerprint.length >= 8 && fingerprint.length <= 64
@@ -98,6 +98,10 @@ router.post('/submit-votes', voteLimiter, csrfProtection, async (req, res) => {
     const status = await getElectionStatus()
     if (status !== 'open') {
         return res.status(403).json({ message: 'Voting is currently closed.' })
+    }
+    const portalMode = await getPortalMode()
+    if (portalMode !== 'voting') {
+        return res.status(403).json({ message: 'The portal is not currently accepting votes.' })
     }
 
     const cookieVotedIds = parseVotedCookie(req)

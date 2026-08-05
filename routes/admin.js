@@ -392,7 +392,8 @@ router.delete('/departments/:id', async (req, res) => {
 
 router.post('/positions', async (req, res) => {
     const { id, title, groupKey, departmentId, sortOrder } = req.body
-    if (!id || !title || !['undergraduate', 'general', 'finalist', 'departmental'].includes(groupKey)) {
+    const validGroupKey = typeof groupKey === 'string' && /^[a-z0-9-]{1,40}$/.test(groupKey)
+    if (!id || !title || !validGroupKey) {
         return res.status(400).json({ message: 'Invalid position data.' })
     }
 

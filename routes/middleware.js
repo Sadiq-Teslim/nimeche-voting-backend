@@ -131,11 +131,14 @@ async function getPortalMode() {
     const result = await query(
         `select coalesce(
             (select value from settings where organization_id = $1 and key = 'portalMode'),
+            $2,
             'nominations'
         ) as mode`,
-        [getOrgId()]
+        [getOrgId(), ['nominations', 'voting'].includes(process.env.PORTAL_MODE) ? process.env.PORTAL_MODE : null]
     )
-    const mode = result.rows[0]?.mode || 'nominations'
+    const mode = ['nominations', 'voting'].includes(result.rows[0]?.mode)
+        ? result.rows[0].mode
+        : 'nominations'
     portalModeCache = { value: mode, updatedAt: Date.now() }
     return mode
 }

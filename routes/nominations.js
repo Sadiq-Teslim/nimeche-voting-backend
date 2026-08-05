@@ -2,7 +2,7 @@
 const express = require('express')
 const router = express.Router()
 const { query } = require('../db')
-const { nominateLimiter, getOrgId } = require('./middleware')
+const { nominateLimiter, getOrgId, getPortalMode } = require('./middleware')
 
 function isValidImageUrl(value) {
     if (!value) return true
@@ -33,6 +33,11 @@ router.post('/nominate', nominateLimiter, async (req, res) => {
         }
     }
     try {
+        const portalMode = await getPortalMode()
+        if (portalMode !== 'nominations') {
+            return res.status(403).json({ message: 'Nominations are currently closed.' })
+        }
+
         const electionRes = await query(
             `select id from elections where organization_id = $1 order by created_at desc limit 1`,
             [getOrgId()]
